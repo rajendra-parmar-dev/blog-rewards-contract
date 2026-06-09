@@ -1,5 +1,8 @@
 # BlogRewards
 
+[![CI](https://github.com/rajendra-parmar-dev/blog-rewards-contract/actions/workflows/ci.yml/badge.svg)](https://github.com/rajendra-parmar-dev/blog-rewards-contract/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 An Ethereum smart contract that rewards verified bloggers, with a built-in
 veto-and-appeal mechanism to dispute fraudulent reward claims.
 
@@ -52,4 +55,9 @@ truffle migrate      # deploy to the configured network
 The suite in `test/blogreward.js` covers reward creation, deposit validation,
 cancellation, veto and appeal flows, verdicts, payouts, and the time-based
 constraints (28-day claim window, 7-day appeal window), and reports gas usage
-per transaction.
+per transaction. All 36 tests pass, and they run automatically in CI on every
+push and pull request.
+
+## License
+
+Released under the [MIT License](LICENSE).
