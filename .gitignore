@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# Truffle build output
+build/
+
+# OS / editor cruft
+.DS_Store
+*.swp
+
+# Logs
+*.log
+npm-debug.log*
