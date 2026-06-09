@@ -1,0 +1,26 @@
+{
+  "name": "blog-rewards-contract",
+  "version": "1.0.0",
+  "description": "Ethereum smart contract that rewards verified bloggers, with a veto-and-appeal mechanism to dispute fraudulent reward claims.",
+  "scripts": {
+    "compile": "truffle compile",
+    "test": "truffle test",
+    "migrate": "truffle migrate"
+  },
+  "keywords": [
+    "ethereum",
+    "solidity",
+    "smart-contract",
+    "truffle",
+    "blog-rewards"
+  ],
+  "author": "Rajendra Parmar",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rajendra-parmar-dev/blog-rewards-contract.git"
+  },
+  "devDependencies": {
+    "truffle": "^5.11.5"
+  }
+}
