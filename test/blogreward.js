@@ -1,6 +1,7 @@
 const BloggingRewards = artifacts.require("./BlogRewards.sol");
 const assertJump = require("./helpers/assertJump");
 const log = require("./helpers/logger");
+const increaseTime = require("./helpers/increaseTime");
 
 contract("BloggingRewards", accounts => {
 	let blog;
@@ -200,15 +201,7 @@ contract("BloggingRewards", accounts => {
 				.then(tx => {
 					log(`Adding new reward request ${tx.receipt.gasUsed} gas`);
 				});
-			await web3.currentProvider.sendAsync(
-				{
-					jsonrpc: "2.0",
-					method: "evm_increaseTime",
-					params: [86400 * 29], // 86400 seconds in a day
-					id: new Date().getTime()
-				},
-				() => {}
-			);
+			await increaseTime(86400 * 29);
 			await blog.vetoRequest(1, { from: veto, value: 1 }).then(tx => {
 				log(`Veto request ${tx.receipt.gasUsed} gas`);
 			});
@@ -307,15 +300,7 @@ contract("BloggingRewards", accounts => {
 			await blog.vetoRequest(1, { from: veto, value: 1 }).then(tx => {
 				log(`Veto request ${tx.receipt.gasUsed} gas`);
 			});
-			await web3.currentProvider.sendAsync(
-				{
-					jsonrpc: "2.0",
-					method: "evm_increaseTime",
-					params: [86400 * 8], // 86400 seconds in a day
-					id: new Date().getTime()
-				},
-				() => {}
-			);
+			await increaseTime(86400 * 8);
 			await blog.appeal(1, { from: blogger1, value: 1 }).then(tx => {
 				log(`Appeal request ${tx.receipt.gasUsed} gas`);
 			});
@@ -421,15 +406,7 @@ contract("BloggingRewards", accounts => {
 			.then(tx => {
 				log(`Adding new reward request ${tx.receipt.gasUsed} gas`);
 			});
-		await web3.currentProvider.sendAsync(
-			{
-				jsonrpc: "2.0",
-				method: "evm_increaseTime",
-				params: [86400 * 29], // 86400 seconds in a day
-				id: new Date().getTime()
-			},
-			() => {}
-		);
+		await increaseTime(86400 * 29);
 		await blog.bloggerPayout(1, { from: blogger1 }).then(tx => {
 			log(`Blogger Payout request ${tx.receipt.gasUsed} gas`);
 		});
@@ -626,15 +603,7 @@ contract("BloggingRewards", accounts => {
 		await blog.vetoRequest(1, { from: veto, value: 1 }).then(tx => {
 			log(`Veto request ${tx.receipt.gasUsed} gas`);
 		});
-		await web3.currentProvider.sendAsync(
-			{
-				jsonrpc: "2.0",
-				method: "evm_increaseTime",
-				params: [86400 * 8], // 86400 seconds in a day
-				id: new Date().getTime()
-			},
-			() => {}
-		);
+		await increaseTime(86400 * 8);
 		await blog.vetoPayout(1, { from: veto }).then(tx => {
 			log(`Veto request ${tx.receipt.gasUsed} gas`);
 		});
