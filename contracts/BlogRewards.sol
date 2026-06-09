@@ -28,8 +28,15 @@ contract StandardToken {
     function transferFrom(address from, address to, uint amount) returns (bool);
 }
 
+/// @title BlogRewards
+/// @notice Tracks blogger reward claims and their dispute lifecycle: veto,
+///         appeal, coordinator verdict, and payout.
+/// @dev Amounts are denominated in wei. Time windows are a 28-day claim window
+///      and a 7-day appeal window. The contract creator acts as the coordinator
+///      that issues verdicts.
 contract BlogRewards {
 
+    /// @notice Returns the contract version string.
     function version() constant returns (bytes32) {
         return "0.2.2-debug";
     }
@@ -86,6 +93,10 @@ contract BlogRewards {
     }
 
     //CTOR
+    /// @notice Deploys the contract and sets the initial reward and deposit amounts.
+    /// @param _CoordinatorAddress Address that coordinates off-chain validation.
+    /// @param rewardAmount Initial reward amount (wei).
+    /// @param depositAmount Initial deposit required from a blogger (wei).
     function BlogRewards(address _CoordinatorAddress, uint rewardAmount, uint depositAmount) {
         creator = msg.sender;
         coordinator = _CoordinatorAddress;
@@ -96,6 +107,8 @@ contract BlogRewards {
     //For testing
     //Add Blogger
 
+    /// @notice Test helper: associates a request index with the caller.
+    /// @dev Intended for testing only.
     function addBlogger(uint idx) returns (uint) {
         bloggers[msg.sender].lastBlockClaimed = 0;
         bloggers[msg.sender].requestIdx = idx;
@@ -105,6 +118,8 @@ contract BlogRewards {
 
     //For testing
 
+    /// @notice Test helper: returns the caller's current request index.
+    /// @dev Intended for testing only.
     function getRequestID() returns (uint) {
         return bloggers[msg.sender].requestIdx;
     }
@@ -112,6 +127,8 @@ contract BlogRewards {
 
     //Blog Reward Amount
 
+    /// @notice Updates the reward amount. Creator only.
+    /// @param newAmount New reward amount (wei).
     function updateRewardAmount(uint newAmount) isCreator() {
         
         rewardAmount = newAmount;
@@ -120,6 +137,8 @@ contract BlogRewards {
 
     //Deposit Amount
 
+    /// @notice Updates the deposit amount. Creator only.
+    /// @param newAmount New deposit amount (wei).
     function updateDepositAmount(uint newAmount) isCreator() {
         
         depositAmount = newAmount;
@@ -128,6 +147,10 @@ contract BlogRewards {
 
     // New Reward Request
     
+    /// @notice Submits a new reward claim, backed by a deposit.
+    /// @dev Reverts if the caller already has an open request or sends less than
+    ///      the required deposit.
+    /// @param newBlogs Number of new blogs the claim covers.
     function newRewardRequest(uint newBlogs) payable {
         if (bloggers[msg.sender].requestIdx != 0) revert();
         if (msg.value < depositAmount) revert();
@@ -161,6 +184,8 @@ contract BlogRewards {
         RequestEvent(RequestEventTypes.New, idx, 0);
     }
 
+    /// @notice Cancels the caller's open reward request and refunds the deposit.
+    /// @dev Reverts if the request has already been vetoed.
     function cancelRewardRequest() payable {
         uint idx = bloggers[msg.sender].requestIdx;
 
@@ -185,6 +210,9 @@ contract BlogRewards {
         RequestEvent(RequestEventTypes.Cancel, idx, 0);
     }
 
+    /// @notice Vetoes a reward request, staking a fraction of the deposit.
+    /// @dev Must be within 28 days of the request and 7 days of the first veto.
+    /// @param idx Index of the request being vetoed.
     function vetoRequest(uint idx) payable {
         // Avoid self veto
         if (msg.sender == requests[idx].bloggerAddress) revert();
@@ -212,6 +240,9 @@ contract BlogRewards {
 
     }
 
+    /// @notice Lets the blogger appeal a vetoed request by staking the appeal cost.
+    /// @dev Must be within 7 days of the first veto and include the appeal stake.
+    /// @param idx Index of the request being appealed.
     function appeal(uint idx) payable {
         if (msg.sender != requests[idx].bloggerAddress)
             revert();
@@ -227,6 +258,9 @@ contract BlogRewards {
         RequestEvent(RequestEventTypes.Appeal, idx, 0);
     }
 
+    /// @notice Records the coordinator's verdict on an appealed request. Creator only.
+    /// @param idx Index of the request.
+    /// @param inFavorOfBlogger True if the blogger wins, false if the vetos win.
     function verdict(uint idx, bool inFavorOfBlogger) isCreator() {
         if (idx <= 0) revert();
         // Check if their are any vetos
@@ -243,6 +277,8 @@ contract BlogRewards {
         RequestEvent(RequestEventTypes.Verdict, idx, (inFavorOfBlogger)? 1 : 0);
     }
 
+    /// @notice Pays out the blogger for a matured or won request.
+    /// @param idx Index of the caller's request.
     function bloggerPayout(uint idx) payable {
         // Check if the idx exists
         if (bloggers[msg.sender].requestIdx != idx) revert();
@@ -280,10 +316,14 @@ contract BlogRewards {
         }    
     }
 
+    /// @notice Returns the request indices the caller has vetoed.
     function getVetoRequests() returns (uint[]) {
         return vetosToRequestMapping[msg.sender];
     }
 
+    /// @notice Pays out a veto participant when the vetos prevail, or when the
+    ///         appeal window lapses with no appeal.
+    /// @param idx Index of the request.
     function vetoPayout(uint idx) payable {
         if (idx <= 0) revert();
         if(requests[idx].appeal == true) {
@@ -316,6 +356,8 @@ contract BlogRewards {
         }
     }
 
+    /// @notice Sweeps the entire contract balance to a given address. Creator only.
+    /// @param _to Recipient of the contract's balance.
     function returnEth(address _to) isCreator() { 
         if (!_to.send(this.balance)) revert();
     }
